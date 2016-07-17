@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Paint</title>
+	<script src="/socket.io/socket.io.js"></script>
+	<script type="text/javascript" src="/javascripts/index.js"></script>
+	<style type="text/css">
+		body{
+			margin: 0;
+			padding: 0;
+		}
+		h1{
+			height: 50px;
+			text-align: center;
+			margin: 0;
+			padding: 0;
+		}
+		#canvas{
+			margin-left: 20%;
+			padding: 0;
+		}
+	</style>
+</head>
+<body>
+	<h1>Paint with Canvas</h1>
+	<canvas id="canvas" width="500" height="400" style="border:1px solid black">
+		
+	</canvas>
+	<label for="color">Color</label>
+	<input type="color" name="color" id="color" value="#000000">
+	<label for="tamano">Tamaño</label>
+	<input type="number" name="tamano" id="tamano" min="5" max="50" value="10">
+	<a href="#" class="button" id="btn-download" value="png">Guardar PNG</a>
+</body>
+</html>
