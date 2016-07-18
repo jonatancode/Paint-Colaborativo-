@@ -1,11 +1,14 @@
 window.addEventListener('load', function(){
 	var canvas = document.getElementById("canvas");
+	canvas.setAttribute('width', pantalla.getwidth() );
+	canvas.setAttribute('height', pantalla.getheight() );
 	ctx = canvas.getContext("2d");
 
 	canvas.addEventListener('click', function(e){
 		canvas.addEventListener('mousemove', dibuja, false);
 		canvas.addEventListener('click', comprueba, false);
 	}, false);
+
 	 // descarga
 	var button = document.getElementById('btn-download');
 	button.addEventListener('click', descarga, false);
@@ -17,11 +20,28 @@ window.addEventListener('load', function(){
 	var tamano = document.getElementById("tamano");
 	tamano.addEventListener("change", cambia_propiedades, false);
 
-
 }, false)
+
+function calcula_tamano_pantalla(){
+	this.width = null;
+	this.height = null;
+	this.getwidth = function getwidth(){
+		this.width = document.body.clientWidth;
+		return document.body.clientWidth;
+	}
+	this.getheight = function (){
+		this.height = document.body.clientHeight;
+		return document.body.clientHeight;
+	}
+}
+var pantalla = new calcula_tamano_pantalla();
+
 var canvasX = false;
 var canvasY = false;
 var mousemove = false;
+var controles_ocultos = false;
+var panel = null;
+
 // objeto pincel
 function Pincel(tamano, color){
 	this.tamano = tamano;
@@ -51,10 +71,12 @@ function dibuja(e){
 		canvasY = canvas.offsetTop;
 		canvasX = canvas.offsetLeft;
 	}
-	var x = e.clientX - canvasX;
-	var y = e.clientY - canvasY;
-	var h = pincel.tamano;
-	var w = pincel.tamano;
+	if (!controles_ocultos) {
+		panel = document.getElementById('controles');
+		panel.classList.add("inactive");
+	}
+	var x = e.clientX;
+	var y = e.clientY;
 	//console.log(e);
 	//console.log(e.clientX);
 	//console.log(e.clientY);
@@ -71,10 +93,7 @@ function dibuja(e){
 		tamano : pincel.tamano,
 		color : pincel.color
 	}
-	/* pinceladas del cliente */
 	socket.emit("dibujo_cliente", datos);
-	//ctx.fillStyle = "red";
-	//ctx.fillRect(x, y, w, h);
 }
 
 function comprueba(){
@@ -85,7 +104,7 @@ function comprueba(){
 		// Dejamos escuchando canvas el click
 		canvas.addEventListener('click', function(){
 		},false)
-		
+		panel.classList.remove("inactive");
 	}
 
 }
@@ -111,15 +130,13 @@ function cambia_propiedades(e){
 
 function descarga(){
 	var dataUrl = canvas.toDataURL();
-	dataUrl=dataUrl.replace("image/jpg",'image/octet-stream'); // sustituimos el tipo por octet
+	dataUrl=dataUrl.replace("image/png",'image/octet-stream'); // sustituimos el tipo por octet
 	document.location.href = dataUrl; 
 }
 
 
 
 var socket = io();
-
-
 
 socket.on('messages', function (data) {
 	console.log(data);

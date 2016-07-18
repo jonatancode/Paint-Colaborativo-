@@ -9,28 +9,52 @@
 		body{
 			margin: 0;
 			padding: 0;
+			height: 100vh;
+			width: 100%;
 		}
-		h1{
-			height: 50px;
-			text-align: center;
+
+		#container{
+			height: 100%;
+			overflow: hidden;
 			margin: 0;
 			padding: 0;
 		}
 		#canvas{
-			margin-left: 20%;
+			position: relative;
+			margin: 0;
 			padding: 0;
+			z-index: 1;
+		}
+		.controles{
+			width: 300px;
+			position: absolute;
+			z-index: 99;
+			top: 10px;
+			left: 50%;
+			transform: translate(-75%,0%);
+			background: rgba(23,64,10,0.2);
+			border: 1px solid black;
+			border-radius: 10px;
+			padding: 10px;
+		}
+		.inactive{
+			opacity: 0.2;
+			z-index: -1;
 		}
 	</style>
 </head>
 <body>
-	<h1>Paint with Canvas</h1>
-	<canvas id="canvas" width="500" height="400" style="border:1px solid black">
+		<div id="controles" class="controles">
+			<label for="color">Color</label>
+			<input type="color" name="color" id="color" value="#000000">
+			<label for="tamano">Tamaño</label>
+			<input type="number" name="tamano" id="tamano" min="5" max="50" value="10">
+			<a href="#" class="button" id="btn-download" value="png">Guardar PNG</a>
+		</div>
+	<div id="container">
+		<canvas id="canvas">
+			</canvas>
+	</div>
 		
-	</canvas>
-	<label for="color">Color</label>
-	<input type="color" name="color" id="color" value="#000000">
-	<label for="tamano">Tamaño</label>
-	<input type="number" name="tamano" id="tamano" min="5" max="50" value="10">
-	<a href="#" class="button" id="btn-download" value="png">Guardar PNG</a>
 </body>
 </html>
