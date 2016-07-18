@@ -19,7 +19,6 @@ window.addEventListener('load', function(){
 	// Tamaño
 	var tamano = document.getElementById("tamano");
 	tamano.addEventListener("change", cambia_propiedades, false);
-
 }, false)
 
 function calcula_tamano_pantalla(){
@@ -129,11 +128,28 @@ function cambia_propiedades(e){
 }
 
 function descarga(){
-	var dataUrl = canvas.toDataURL();
-	dataUrl=dataUrl.replace("image/png",'image/octet-stream'); // sustituimos el tipo por octet
-	document.location.href = dataUrl; 
-}
+	//var dataUrl = canvas.toDataURL();
+	//dataUrl=dataUrl.replace("image/png",'image/octet-stream'); // sustituimos el tipo por octet
+	//document.location.href = dataUrl; 
+	// PASAMOs LOS DATOS A BLOB
+	canvas.toBlob(function (blob) {
+		var reader = new FileReader(); // instanciamos FILEREADER
 
+	  	reader.onload = function(e){
+	  		document.getElementById("imagen").innerHTML = "";
+	  		var img = new Image(); // creamos imagen
+	  		img.src = reader.result; // el resultado del binario en src  
+	  		document.getElementById("dowload").href = reader.result; //DESCARGA
+	  		document.getElementById("dowload").target = "_blank";  //DESCARGA NUEVA PESATAÑA
+	  		document.getElementById("dowload").download = "archivodescarga.png";  //DESCARGA NOMBRE
+	  		document.getElementById("imagen").appendChild(img); // pintamos en pantalla
+	  	}
+	  	reader.readAsDataURL(blob);// lee el binario 
+	});
+
+	// mostrar panel de descarga
+	document.getElementById("descarga").classList.remove("oculto");
+}
 
 
 var socket = io();
