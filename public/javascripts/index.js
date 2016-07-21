@@ -1,13 +1,11 @@
+var canvas = null;
 window.addEventListener('load', function(){
-	var canvas = document.getElementById("canvas");
+	canvas = document.getElementById("canvas");
 	canvas.setAttribute('width', pantalla.getwidth() );
 	canvas.setAttribute('height', pantalla.getheight() );
 	ctx = canvas.getContext("2d");
 
-	canvas.addEventListener('click', function(e){
-		canvas.addEventListener('mousemove', dibuja, false);
-		canvas.addEventListener('click', comprueba, false);
-	}, false);
+	canvas.addEventListener('click', eventcanvas, false);
 
 	 // descarga
 	var button = document.getElementById('btn-download');
@@ -19,8 +17,25 @@ window.addEventListener('load', function(){
 	// Tamaño
 	var tamano = document.getElementById("tamano");
 	tamano.addEventListener("change", cambia_propiedades, false);
+
+	//exit panel
+	var exit = document.getElementById("exit");
+	exit.addEventListener('click', exitpanel, false)
+
+	// añadir imagen 
+	var addimagen = document.getElementById("addimage");
+	addimagen.addEventListener("change", addimageprev, false)
+	addimagen.addEventListener("click", captura_raton, false)
+	// apagar canvas
+	var apagar = document.getElementById("apagar");
+	apagar.addEventListener("click", quitarcanvas, false);
 }, false)
 
+/*eventode canvas*/
+function eventcanvas(e){
+	document.getElementById("canvas").addEventListener('mousemove', dibuja, false);
+	document.getElementById("canvas").addEventListener('click', comprueba, false);
+}
 function calcula_tamano_pantalla(){
 	this.width = null;
 	this.height = null;
@@ -101,8 +116,7 @@ function comprueba(){
 		canvas.removeEventListener('mousemove', dibuja, false);
 		mousemove = false;
 		// Dejamos escuchando canvas el click
-		canvas.addEventListener('click', function(){
-		},false)
+		canvas.addEventListener('click', false)
 		panel.classList.remove("inactive");
 	}
 
@@ -150,8 +164,86 @@ function descarga(){
 	// mostrar panel de descarga
 	document.getElementById("descarga").classList.remove("oculto");
 }
+function exitpanel(){
+	document.getElementById("descarga").classList.add("oculto")
+}
+pos_raton_y = 0 
+pos_raton_x = 0
+function captura_raton(e){
+	document.body.addEventListener("mousemove", ver, false);
+}
+function ver(e) {
+	pos_raton_y = e.clientY;
+	pos_raton_x = e.clientX;
+}
+/* añadir imagen ver previa*/
+function addimageprev(e){
+	var imagencruda = e.target.files[0]
+	var reader = new FileReader();
+	var previa = new Image();
 
 
+	reader.onload = function(){
+		previa.src = reader.result;
+		document.getElementById("virtual-image").appendChild(previa);
+		document.getElementById("virtual-image").classList.add("mostrar");
+		altoimg = document.getElementById("virtual-image").childNodes[0].height;
+		anchoimg = document.getElementById("virtual-image").childNodes[0].width;
+		document.getElementById("virtual-image").style.top = pos_raton_y +"px";
+		document.getElementById("virtual-image").style.left = pos_raton_x+"px";
+		console.log(e);
+		console.log(e.clientX);
+		quitarcanvas();
+	}
+	if (imagencruda){
+		reader.readAsDataURL(imagencruda);
+	}else{
+		previa.src = "";
+		alert("Eror de imagen");
+	}
+}
+var mostrar = document.getElementsByClassName("mostrar")[0];
+function colocarimagen(e){
+	console.log(e.clientX);
+	console.log(e.clientY);
+	if (mostrar) {
+		
+	}else{
+		mostrar =  document.getElementsByClassName("mostrar")[0];
+		altoimg = mostrar.childNodes[0].height;
+		anchoimg = mostrar.childNodes[0].width;
+	}
+	mostrar.style.top = e.clientY - altoimg/2 +"px";
+	mostrar.style.left = e.clientX - anchoimg /2  +"px";
+}
+
+/*PRUEBA*/
+function quitarcanvas(){
+	/*quitar evento de canvas*/
+	document.getElementById("canvas").removeEventListener('click', eventcanvas, false);
+	document.getElementById("canvas").removeEventListener('mousemove', dibuja, false);
+	document.getElementById("canvas").removeEventListener('click', comprueba, false);
+
+	document.getElementsByClassName("mostrar")[0].addEventListener("mousemove", colocarimagen, false);
+	document.getElementsByClassName("mostrar")[0].addEventListener('click', activar_canvas, false);
+	console.log("eliminado");
+}
+
+function activar_canvas(e){
+	console.log("Anclar imangen");
+	//console.log(e.clientX)
+	//console.log(e.clientY)
+	// dibujar imagen
+	// img, ejeX, ejexY, ancho, alto
+	ctx.drawImage( mostrar.childNodes[0], e.clientX , e.clientY, anchoimg, altoimg);
+	// borrar div mostrar
+	document.getElementById("virtual-image").innerHTML= "";
+	document.getElementById("virtual-image").classList.remove("mostrar");
+	
+	document.getElementById("canvas").removeEventListener("mousemove", colocarimagen, false);
+	document.getElementById("canvas").addEventListener('click', eventcanvas, false);
+	document.getElementById("canvas").removeEventListener('click', activar_canvas, false);
+}
 var socket = io();
 
 socket.on('messages', function (data) {
