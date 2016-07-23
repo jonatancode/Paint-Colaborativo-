@@ -2,16 +2,38 @@ guardar en memoria el color de los traxos realizados.
 
 panel ocultar fuera del navegador
 
-guardar sin salir del lienzo:ECHO
-
 seleccionar tus trazos y modificar tamaño, color, forma
 
 PANEL:
 	permitir seleccionar forma geometricas
 	añadir imagen formato png y jpg
 	forma del pincel 
+	Bloquear las subida de archivos que no sean png o jpg
 
 
-SOLUCIONAR: tamaño del liezo.
+Tamaño del liezo.
 
+Cambiar propiedades de la imagen subida(tamaño,..)
 guardar tus trazos
+
+Nota: 
+ 	Enviar trazos por partes, esperar 20s
+
+##########################
+
+YA PUEDE:
+			Enviar imagenes
+			enviar poscicion del punturo, y propiedades
+			Guardar Imagen
+			Cambiar Propiedades del pincel
+			Guardar sin salir del lienzo
+
+
+
+
+###################################################
+stop 1;
+
+  He cambiado la forma de envio, ahora, envia los trazos cuando realizamos click sobre el canvas, 
+  mejorar efecto de presentacion, mas lento, dar sensacion de streaming
+  los trazos son guardados en la varible buffer,

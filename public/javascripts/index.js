@@ -1,4 +1,16 @@
+
 var canvas = null;
+var panel = null;
+var mousemove = false;
+var controles_ocultos = false;
+
+var container_image_prev = null;
+
+var pantalla = new calcula_tamano_pantalla();
+
+var btn_dowload = null;
+var container_dowload = null;
+
 window.addEventListener('load', function(){
 	canvas = document.getElementById("canvas");
 	canvas.setAttribute('width', pantalla.getwidth() );
@@ -14,80 +26,66 @@ window.addEventListener('load', function(){
 	// Color
 	var color = document.getElementById("color");
 	color.addEventListener("change", cambia_propiedades, false);
+
 	// Tamaño
 	var tamano = document.getElementById("tamano");
 	tamano.addEventListener("change", cambia_propiedades, false);
 
-	//exit panel
-	var exit = document.getElementById("exit");
-	exit.addEventListener('click', exitpanel, false)
 
 	// añadir imagen 
 	var addimagen = document.getElementById("addimage");
 	addimagen.addEventListener("change", addimageprev, false)
-	addimagen.addEventListener("click", captura_raton, false)
-	// apagar canvas
-	var apagar = document.getElementById("apagar");
-	apagar.addEventListener("click", quitarcanvas, false);
+
+	//exit panel
+	var exit = document.getElementById("exit");
+	exit.addEventListener('click', exitpanel, false)
+	
+	btn_dowload = document.getElementById("dowload");
+	container_dowload=  document.getElementById("descarga");
 }, false)
 
-/*eventode canvas*/
+/*evento de canvas*/
 function eventcanvas(e){
-	document.getElementById("canvas").addEventListener('mousemove', dibuja, false);
-	document.getElementById("canvas").addEventListener('click', comprueba, false);
-}
-function calcula_tamano_pantalla(){
-	this.width = null;
-	this.height = null;
-	this.getwidth = function getwidth(){
-		this.width = document.body.clientWidth;
-		return document.body.clientWidth;
-	}
-	this.getheight = function (){
-		this.height = document.body.clientHeight;
-		return document.body.clientHeight;
-	}
-}
-var pantalla = new calcula_tamano_pantalla();
-
-var canvasX = false;
-var canvasY = false;
-var mousemove = false;
-var controles_ocultos = false;
-var panel = null;
-
-// objeto pincel
-function Pincel(tamano, color){
-	this.tamano = tamano;
-	this.color = color;
-
-	this.setColor = function(newColor){
-		this.color = newColor;
-	}	
-	this.setTamano = function(newTamano){
-		this.tamano = newTamano;
-	}	
-
-	this.getColor = function(newColor){
-		return this.color;
-	}	
-	this.getTamano = function(newTamano){
-		return this.tamano;
-	}
+	canvas.addEventListener('mousemove', dibuja, false);
+	canvas.addEventListener('click', comprueba, false);
 }
 
-pincel = new Pincel(10, "#000000");
+
+/*
+	Ocultar Panel
+*/
+
+function ocultaPanel(opcion){
+	if (!panel){
+		panel = document.getElementById('controles');
+	}
+
+	if (opcion) {
+		panel.classList.add("inactive");
+	}
+	else{
+		panel.classList.remove("inactive");
+	}
+}
+/*
+
+ 	BUFFER cada 20s se enviará
+*/
+
+buffer = {
+	tamano : "",
+	color : "",
+	coordenadas : []
+}
+
 
 function dibuja(e){
-	mousemove = true;
-	
-	if (!canvasX & !canvasY) {
-		canvasY = canvas.offsetTop;
-		canvasX = canvas.offsetLeft;
+	if (!mousemove) {
+		mousemove = true;
 	}
+	
 	if (!controles_ocultos) {
-		panel = document.getElementById('controles');
-		panel.classList.add("inactive");
+		ocultaPanel(true);
 	}
 	var x = e.clientX;
 	var y = e.clientY;
@@ -96,7 +94,7 @@ function dibuja(e){
 	//console.log(e.clientY);
 	ctx.beginPath();
 	ctx.lineCap="round";
-	ctx.lineWidth=pincel.tamano;
+	ctx.lineWidth = pincel.tamano;
 	ctx.moveTo(x,y);
 	ctx.lineTo(x+1,y+1);
 	ctx.strokeStyle = pincel.color;
@@ -107,23 +105,30 @@ function dibuja(e){
 		tamano : pincel.tamano,
 		color : pincel.color
 	}
-	socket.emit("dibujo_cliente", datos);
+	var ejes = [x, y]
+	buffer.coordenadas.push(ejes);
+
 }
 
 function comprueba(){
-	console.log("hola");
 	if (mousemove) {
 		canvas.removeEventListener('mousemove', dibuja, false);
 		mousemove = false;
 		// Dejamos escuchando canvas el click
 		canvas.addEventListener('click', false)
-		panel.classList.remove("inactive");
-	}
 
+		ocultaPanel(false);
+		buffer.tamano = pincel.tamano;
+		buffer.color = pincel.color;
+		console.log(buffer);
+		socket.emit("dibujo_cliente", buffer);
+		
+		buffer.coordenadas = [];
+	}
 }
 
 /*
-	OPCIONES
+	OPCIONES DEL PINCEL
 */
 function cambia_propiedades(e){
 	var event = e;
@@ -142,10 +147,8 @@ function cambia_propiedades(e){
 }
 
 function descarga(){
-	//var dataUrl = canvas.toDataURL();
-	//dataUrl=dataUrl.replace("image/png",'image/octet-stream'); // sustituimos el tipo por octet
-	//document.location.href = dataUrl; 
-	// PASAMOs LOS DATOS A BLOB
+
+	// PASAMOs LOS DATOS A crudo
 	canvas.toBlob(function (blob) {
 		var reader = new FileReader(); // instanciamos FILEREADER
 
@@ -153,97 +156,111 @@ function descarga(){
 	  		document.getElementById("imagen").innerHTML = "";
 	  		var img = new Image(); // creamos imagen
 	  		img.src = reader.result; // el resultado del binario en src  
-	  		document.getElementById("dowload").href = reader.result; //DESCARGA
-	  		document.getElementById("dowload").target = "_blank";  //DESCARGA NUEVA PESATAÑA
-	  		document.getElementById("dowload").download = "archivodescarga.png";  //DESCARGA NOMBRE
+	  		btn_dowload.href = reader.result; //DESCARGA
+	  		btn_dowload.target = "_blank";  //DESCARGA NUEVA PESATAÑA
+	  		btn_dowload.download = "archivodescarga.png";  //DESCARGA NOMBRE
 	  		document.getElementById("imagen").appendChild(img); // pintamos en pantalla
 	  	}
 	  	reader.readAsDataURL(blob);// lee el binario 
 	});
 
-	// mostrar panel de descarga
-	document.getElementById("descarga").classList.remove("oculto");
+	// container_image_prev panel de descarga
+	container_dowload.classList.remove("oculto");
 }
+
 function exitpanel(){
-	document.getElementById("descarga").classList.add("oculto")
+	container_dowload.classList.add("oculto");
 }
-pos_raton_y = 0 
-pos_raton_x = 0
-function captura_raton(e){
-	document.body.addEventListener("mousemove", ver, false);
-}
-function ver(e) {
-	pos_raton_y = e.clientY;
-	pos_raton_x = e.clientX;
-}
+
+
+/*
+	ImagenPropiedades (imagen, height, width, src, name)
+*/
+var imagenprueba = new ImagenPropiedades();
+
 /* añadir imagen ver previa*/
 function addimageprev(e){
-	var imagencruda = e.target.files[0]
+	// controlo el raton
+	imagenprueba.imagen =  e.target.files[0];
 	var reader = new FileReader();
 	var previa = new Image();
 
-
 	reader.onload = function(){
 		previa.src = reader.result;
+		imagenprueba.imagen = previa;
+
 		document.getElementById("virtual-image").appendChild(previa);
 		document.getElementById("virtual-image").classList.add("mostrar");
-		altoimg = document.getElementById("virtual-image").childNodes[0].height;
-		anchoimg = document.getElementById("virtual-image").childNodes[0].width;
-		document.getElementById("virtual-image").style.top = pos_raton_y +"px";
-		document.getElementById("virtual-image").style.left = pos_raton_x+"px";
-		console.log(e);
-		console.log(e.clientX);
-		quitarcanvas();
+
+		container_image_prev = document.getElementById("virtual-image");
+		ocultaPanel(true);
+		imagenprueba.height = container_image_prev.childNodes[0].height;
+		imagenprueba.width = container_image_prev.childNodes[0].width;
+
+		canvas.removeEventListener('click', eventcanvas, false);
+		canvas.removeEventListener('mousemove', dibuja, false);
+		canvas.removeEventListener('click', comprueba, false);
+
+		container_image_prev.addEventListener("mousemove", moverImagen, false);
+		/* Al reazalizar click añade imagen y.. elimina eventos de otros elementos*/
+		container_image_prev.addEventListener('click', insertarImagen, false);
 	}
-	if (imagencruda){
-		reader.readAsDataURL(imagencruda);
+	if (imagenprueba.imagen){
+		reader.readAsDataURL(imagenprueba.imagen);
+		document.body.addEventListener("mousemove", controlarmouse, false);
 	}else{
 		previa.src = "";
+		imagenprueba =null;
 		alert("Eror de imagen");
 	}
 }
-var mostrar = document.getElementsByClassName("mostrar")[0];
-function colocarimagen(e){
-	console.log(e.clientX);
-	console.log(e.clientY);
-	if (mostrar) {
-		
-	}else{
-		mostrar =  document.getElementsByClassName("mostrar")[0];
-		altoimg = mostrar.childNodes[0].height;
-		anchoimg = mostrar.childNodes[0].width;
-	}
-	mostrar.style.top = e.clientY - altoimg/2 +"px";
-	mostrar.style.left = e.clientX - anchoimg /2  +"px";
+
+function moverImagen(e){
+	//console.log(e.clientX);
+	//console.log(e.clientY);
+	container_image_prev.style.top = e.clientY - imagenprueba.height/2 +"px";
+	container_image_prev.style.left = e.clientX - imagenprueba.width /2  +"px";
 }
+/*
+	ISERTA IMAGEN Y ENVIA IMAGEN AL SERVIDOR
+*/
+function insertarImagen(e){
 
-/*PRUEBA*/
-function quitarcanvas(){
-	/*quitar evento de canvas*/
-	document.getElementById("canvas").removeEventListener('click', eventcanvas, false);
-	document.getElementById("canvas").removeEventListener('mousemove', dibuja, false);
-	document.getElementById("canvas").removeEventListener('click', comprueba, false);
-
-	document.getElementsByClassName("mostrar")[0].addEventListener("mousemove", colocarimagen, false);
-	document.getElementsByClassName("mostrar")[0].addEventListener('click', activar_canvas, false);
-	console.log("eliminado");
-}
-
-function activar_canvas(e){
-	console.log("Anclar imangen");
-	//console.log(e.clientX)
-	//console.log(e.clientY)
-	// dibujar imagen
+	/* DIBUJA IMAGEN EN CANVAS */
 	// img, ejeX, ejexY, ancho, alto
-	ctx.drawImage( mostrar.childNodes[0], e.clientX , e.clientY, anchoimg, altoimg);
-	// borrar div mostrar
-	document.getElementById("virtual-image").innerHTML= "";
-	document.getElementById("virtual-image").classList.remove("mostrar");
+	//console.log(imagenprueba.imagen);
+	ctx.drawImage( imagenprueba.imagen, e.clientX - imagenprueba.width /2 , e.clientY - imagenprueba.height/2, imagenprueba.width, imagenprueba.height);
+	/*
+		Enviar imagen al servidor
+	*/
+	enviarImagen(imagenprueba.imagen.src);
+	datosImagen(e.clientX - imagenprueba.width /2 , e.clientY - imagenprueba.height/2);
+
 	
-	document.getElementById("canvas").removeEventListener("mousemove", colocarimagen, false);
-	document.getElementById("canvas").addEventListener('click', eventcanvas, false);
-	document.getElementById("canvas").removeEventListener('click', activar_canvas, false);
+	canvas.removeEventListener("mousemove", moverImagen, false);
+	canvas.addEventListener('click', eventcanvas, false);
+	canvas.removeEventListener('click', insertarImagen, false);
+	/*ELimina evento del body*/
+	document.body.removeEventListener('mousemove', controlarmouse, false);
+
+	// Elimnar eventos del elemento container_image_prev
+	container_image_prev.addEventListener('mousemove', moverImagen);
+	container_image_prev.addEventListener('click', insertarImagen);
+	container_image_prev.innerHTML= "";
+	container_image_prev.classList.remove("mostrar");
+
+	ocultaPanel(false);
 }
+
+/* AÑADE LA IMAGEN AL RATON*/
+function controlarmouse(e){
+	container_image_prev.style.top = e.clientY- imagenprueba.width/2 +"px";
+	container_image_prev.style.left = e.clientX  - imagenprueba.height/2 +"px";
+}
+
+
+
+
 var socket = io();
 
 socket.on('messages', function (data) {
@@ -255,18 +272,50 @@ socket.on("linea_Companero", function(data){
 });
 
 function dibujaCompanero(objeto){
-	var x = objeto.x;
-	var y = objeto.y;
-	var h = objeto.tamano;
-	var w = objeto.tamano;
-	//console.log(e);
-	//console.log(e.clientX);
-	//console.log(e.clientY);
-	ctx.beginPath();
-	ctx.lineCap="round";
-	ctx.lineWidth=objeto.tamano;
-	ctx.moveTo(x,y);
-	ctx.lineTo(x+1,y+1);
-	ctx.strokeStyle = objeto.color;
-	ctx.stroke();
+	console.log(objeto);
+
+	objeto.coordenadas.forEach(function(elemt, index){
+		//console.log(i);
+		var x = elemt[0];
+		var y = elemt[1];
+
+		ctx.beginPath();
+		ctx.lineCap="round";
+		ctx.lineWidth=objeto.tamano;
+		ctx.moveTo(x,y);
+		ctx.lineTo(x+1,y+1);
+		ctx.strokeStyle = objeto.color;
+		ctx.stroke();
+
+	});
+}
+
+
+/*
+	MUESTRA IMAGEN ENVIADA POR LOS USARIOS
+*/
+var imagenEscribir = null;
+socket.on("imagen usuarios", function(imagen){
+	//console.log(imagen)
+	image = new Image();
+	image.src = imagen;
+	imagenEscribir = image; 
+	console.log("IMagen recibida")
+})
+
+socket.on("serverDatosImagen", function(objeto){
+	ctx.drawImage( imagenEscribir, objeto.ejex, objeto.ejey);
+
+})
+
+function enviarImagen(imagen){
+	socket.emit('imagen', imagen);
+}
+function datosImagen(ejex, ejey){
+	var objeto= {
+		ejex : ejex,
+		ejey : ejey
+	}
+	socket.emit('sendDatosImagen', objeto);
+	imagenprueba.clean();
 }

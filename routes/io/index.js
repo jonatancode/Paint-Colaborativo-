@@ -10,7 +10,20 @@ module.exports = function(app){
 		socket.emit("messages", { mensaje : "Hola soy el servidor"});
 		// recibe datos del cliente y los envia los compalñeros
 		socket.on("dibujo_cliente", function(data){
-			io.emit("linea_Companero", data);
+
+			/* envia a todos los usuer menos al que activa el evento*/
+			socket.broadcast.emit("linea_Companero", data);
+		})
+		/*
+			 DISTRIBUIR IMAGEN SUBIDA OR EL USUARIO
+		*/
+
+		socket.on('imagen', function(data){
+			socket.broadcast.emit('imagen usuarios', data);
+		})
+
+		socket.on("sendDatosImagen", function(data){
+			socket.broadcast.emit("serverDatosImagen", data)
 		})
 	});
 }
