@@ -27,6 +27,10 @@ YA PUEDE:
 			Guardar Imagen
 			Cambiar Propiedades del pincel
 			Guardar sin salir del lienzo
+				// AÑADIDO MONGODB
+			gUARDAR TRAZOS N E MONGOdb
+			GUARDAR IMAGENES EN MONGOB
+			inicia el cliente con los trazos e imagenes guardados en mongodb
 
 
 
@@ -37,3 +41,10 @@ stop 1;
   He cambiado la forma de envio, ahora, envia los trazos cuando realizamos click sobre el canvas, 
   mejorar efecto de presentacion, mas lento, dar sensacion de streaming
   los trazos son guardados en la varible buffer,
+
+
+stop 2:
+
+	Los archivos subido se guardan en la carpeta publica imagenes, de esta forma podemos acceder a todas la imagenes de
+	una forma más rapida y sencilla.
+	Ahora los trazos se envia cada 3 segundos o en cada click para terminar el trazado

@@ -42,14 +42,30 @@ window.addEventListener('load', function(){
 	
 	btn_dowload = document.getElementById("dowload");
 	container_dowload=  document.getElementById("descarga");
+
+	/* PIDE IMAGENES DE LA BASE DE DATOS*/
+	socket.emit("getinfo image", {})
+
 }, false)
 
 /*evento de canvas*/
 function eventcanvas(e){
 	canvas.addEventListener('mousemove', dibuja, false);
-	canvas.addEventListener('click', comprueba, false);
+
+	/* 3s*/
+	enviar_buffer = setInterval( function(){ reloj() }, 3000);
+	
 }
 
+function reloj(){
+	if (buffer.coordenadas.length != 0) {
+		buffer.tamano = pincel.tamano;
+		buffer.color = pincel.color;
+		socket.emit("dibujo_cliente", buffer);
+		buffer.coordenadas = [];
+	}
+
+}
 
 /*
 	Ocultar Panel
@@ -69,9 +85,8 @@ function ocultaPanel(opcion){
 }
 /*
 
- 	BUFFER cada 20s se enviará
+ 	BUFFER cada 5s se enviará
 */
-
 buffer = {
 	tamano : "",
 	color : "",
@@ -89,9 +104,6 @@ function dibuja(e){
 	}
 	var x = e.clientX;
 	var y = e.clientY;
-	//console.log(e);
-	//console.log(e.clientX);
-	//console.log(e.clientY);
 	ctx.beginPath();
 	ctx.lineCap="round";
 	ctx.lineWidth = pincel.tamano;
@@ -107,23 +119,25 @@ function dibuja(e){
 	}
 	var ejes = [x, y]
 	buffer.coordenadas.push(ejes);
-
+	canvas.addEventListener('click', comprueba, false);
 }
 
 function comprueba(){
+	console.log("Comprobando");
 	if (mousemove) {
-		canvas.removeEventListener('mousemove', dibuja, false);
 		mousemove = false;
-		// Dejamos escuchando canvas el click
-		canvas.addEventListener('click', false)
-
 		ocultaPanel(false);
-		buffer.tamano = pincel.tamano;
-		buffer.color = pincel.color;
+		canvas.removeEventListener('mousemove', dibuja);
+		canvas.removeEventListener('click', comprueba)
+
 		console.log(buffer);
-		socket.emit("dibujo_cliente", buffer);
-		
-		buffer.coordenadas = [];
+		if (buffer.coordenadas.length != 0) {
+			buffer.tamano = pincel.tamano;
+			buffer.color = pincel.color;
+			clearInterval(enviar_buffer);
+			socket.emit("dibujo_cliente", buffer);
+			buffer.coordenadas = [];
+		}
 	}
 }
 
@@ -199,7 +213,7 @@ function addimageprev(e){
 
 		canvas.removeEventListener('click', eventcanvas, false);
 		canvas.removeEventListener('mousemove', dibuja, false);
-		canvas.removeEventListener('click', comprueba, false);
+		//canvas.removeEventListener('click', comprueba, false);
 
 		container_image_prev.addEventListener("mousemove", moverImagen, false);
 		/* Al reazalizar click añade imagen y.. elimina eventos de otros elementos*/
@@ -233,8 +247,9 @@ function insertarImagen(e){
 	/*
 		Enviar imagen al servidor
 	*/
-	enviarImagen(imagenprueba.imagen.src);
-	datosImagen(e.clientX - imagenprueba.width /2 , e.clientY - imagenprueba.height/2);
+	imagenprueba.coordenadoas = [e.clientX - imagenprueba.width /2 , e.clientY - imagenprueba.height/2];
+
+	enviarImagen(imagenprueba);
 
 	
 	canvas.removeEventListener("mousemove", moverImagen, false);
@@ -259,9 +274,19 @@ function controlarmouse(e){
 }
 
 
-
-
 var socket = io();
+/* Pide trazos guradaos*/
+socket.emit("send trazos", {});
+
+
+
+/* PINTA TRAZXOS DE la base da datos*/
+socket.on("server trazos", function(data){
+	console.log(data);
+	data.data.forEach( function(element, index){
+		dibujaCompanero(element);
+	})
+})
 
 socket.on('messages', function (data) {
 	console.log(data);
@@ -272,7 +297,7 @@ socket.on("linea_Companero", function(data){
 });
 
 function dibujaCompanero(objeto){
-	console.log(objeto);
+	//console.log(objeto);
 
 	objeto.coordenadas.forEach(function(elemt, index){
 		//console.log(i);
@@ -290,32 +315,47 @@ function dibujaCompanero(objeto){
 	});
 }
 
+/* VIEW INFO IMAGE FOR DATABASE*/
+socket.on("viewinfo imageDB", function(objIMG){
+	console.log(objIMG);
+	
+	objIMG.forEach( function(image, index){
+		var img = new Image();
+		img.src = "/images/"+ image.nombre
+		img.onload = function(){
+			ctx.drawImage( img, image.coordenadas[0], image.coordenadas[1]);
+		}
+	})
+})
 
 /*
 	MUESTRA IMAGEN ENVIADA POR LOS USARIOS
 */
+
 var imagenEscribir = null;
-socket.on("imagen usuarios", function(imagen){
-	//console.log(imagen)
-	image = new Image();
-	image.src = imagen;
-	imagenEscribir = image; 
-	console.log("IMagen recibida")
-})
-
-socket.on("serverDatosImagen", function(objeto){
-	ctx.drawImage( imagenEscribir, objeto.ejex, objeto.ejey);
-
-})
 
 function enviarImagen(imagen){
-	socket.emit('imagen', imagen);
-}
-function datosImagen(ejex, ejey){
-	var objeto= {
-		ejex : ejex,
-		ejey : ejey
+	//console.log(imagen.imagen);
+	var nombre = Math.floor(Math.random() * (99999 - 0) +0).toString();
+	var objeto = {
+		imagen : imagen.imagen.src,
+		nombre : nombre,
+		coordenadas : imagen.coordenadoas
 	}
-	socket.emit('sendDatosImagen', objeto);
-	imagenprueba.clean();
+	socket.emit('imagen', objeto );
 }
+
+/* RECIBE IMAGENES DE LOS USUARIOS*/
+socket.on("imagen usuarios", function(imagen){
+
+	console.log("IMagen recibida");
+	console.log(imagen);
+	var img = new Image();
+	//var imgCrudo = window.atob(imagen.imagen);
+	img.src = imagen.imagen;
+
+	ctx.drawImage( img, imagen.coordenadas[0], imagen.coordenadas[1]);
+	
+})
+
+

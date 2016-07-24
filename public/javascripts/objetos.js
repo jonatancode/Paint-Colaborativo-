@@ -44,6 +44,8 @@ function ImagenPropiedades (imagen, height, width, src, name, imagencrudo){
 	this.src = src;
 	this.name = name;
 	this.imagencruda = imagencrudo;
+	/*X , Y*/
+	this.coordenadoas = [];
 
 	this.setHeight = function(height){
 		this.height;
@@ -52,6 +54,10 @@ function ImagenPropiedades (imagen, height, width, src, name, imagencrudo){
 	this.setWidth = function(width){
 		this.height;
 	}
+	this.coordenadoas = function(coordenadas){
+		this.coordenadas = coordenadas;
+	}
+
 	this.clean = function () {
 		this.imagen = "undefined";
 		this.height = "undefined";
@@ -59,6 +65,7 @@ function ImagenPropiedades (imagen, height, width, src, name, imagencrudo){
 		this.src = "undefined";
 		this.name = "undefined";
 		this.imagencruda = "undefined";
+		this.coordenadoas = [];
 	}
 }
 

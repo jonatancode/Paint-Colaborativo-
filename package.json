@@ -11,9 +11,11 @@
     "debug": "~2.2.0",
     "ejs": "~2.4.1",
     "express": "~4.13.4",
+    "hotnode": "0.0.8",
+    "jquery": "^3.1.0",
+    "mongoose": "^4.5.6",
     "morgan": "~1.7.0",
     "serve-favicon": "~2.3.0",
-    "socket.io": "latest",
-    "hotnode": "0.0.8"
+    "socket.io": "latest"
   }
 }

@@ -6,6 +6,9 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
 var routes = require('./routes/index');
+var mongoose = require('mongoose');
+
+mongoose.connect('mongodb://localhost/pinceladas');
 
 var app = express();
 require('./routes/io/index')(app);
@@ -26,3 +29,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', routes);
 app.use('/socket.io/socket.io.js',   express.static(__dirname + '/node_modules/socket.io-client/socket.io.js'));
+app.use('/jquery',   express.static(__dirname + '/node_modules/jquery/dist/jquery.min.js'));
+//app.use('/images',   express.static(__dirname + '/imagenes/'));
+
