@@ -10,6 +10,10 @@ var pantalla = new calcula_tamano_pantalla();
 
 var btn_dowload = null;
 var container_dowload = null;
+var lienzo_real = {
+	//ejex
+	//ejey
+}
 
 window.addEventListener('load', function(){
 	canvas = document.getElementById("canvas");
@@ -46,6 +50,17 @@ window.addEventListener('load', function(){
 	/* PIDE IMAGENES DE LA BASE DE DATOS*/
 	socket.emit("getinfo image", {})
 
+	/*ENvia tamaño pantalla */
+	socket.emit("pantalla usuario", { w: pantalla.getwidth(), h: pantalla.getheight() })
+	socket.on("datos lienzo", function(dato){
+		console.log(dato.ejes);
+		if (!dato.vacio ) {
+			dibujaCompanero(dato.resultado)
+		}
+		lienzo_real.ejex = dato.ejes[0]
+		lienzo_real.ejey = dato.ejes[1]
+	});
+
 }, false)
 
 /*evento de canvas*/
@@ -53,7 +68,7 @@ function eventcanvas(e){
 	canvas.addEventListener('mousemove', dibuja, false);
 
 	/* 3s*/
-	enviar_buffer = setInterval( function(){ reloj() }, 3000);
+	//enviar_buffer = setInterval( function(){ reloj() }, 3000);
 	
 }
 
@@ -118,7 +133,13 @@ function dibuja(e){
 		color : pincel.color
 	}
 	var ejes = [x, y]
-	buffer.coordenadas.push(ejes);
+	//buffer.coordenadas.push(ejes);
+	socket.emit("dibujo_cliente", {
+		color : pincel.color,
+		tamano : pincel.tamano,
+		ejex : x + lienzo_real.ejex,
+		ejey : y + lienzo_real.ejey
+	});
 	canvas.addEventListener('click', comprueba, false);
 }
 
@@ -130,7 +151,7 @@ function comprueba(){
 		canvas.removeEventListener('mousemove', dibuja);
 		canvas.removeEventListener('click', comprueba)
 
-		console.log(buffer);
+		//console.log(buffer);
 		if (buffer.coordenadas.length != 0) {
 			buffer.tamano = pincel.tamano;
 			buffer.color = pincel.color;
@@ -281,51 +302,62 @@ socket.emit("send trazos", {});
 
 
 /* PINTA TRAZXOS DE la base da datos*/
-socket.on("server trazos", function(data){
-	console.log(data);
+/*socket.on("server trazos", function(data){
+	//console.log(data);
+	if (data[0]) {
+		dibujaCompanero(data);
+	}
 	data.data.forEach( function(element, index){
 		dibujaCompanero(element);
 	})
-})
+})*/
 
 socket.on('messages', function (data) {
 	console.log(data);
 })
 
 socket.on("linea_Companero", function(data){
-	dibujaCompanero(data);
+	 var width = pantalla.getwidth();
+	 var heigh = pantalla.getheight();
+	if ( (data.ejex > lienzo_real.ejex && data.ejex < lienzo_real.ejex +  width) && ( data.ejey > lienzo_real.ejey && data.ejey < lienzo_real.ejey +  heigh)) {
+		console.log(lienzo_real);
+		console.log(data);
+		dibujaCompanero(data);
+	}
 });
 
 function dibujaCompanero(objeto){
-	//console.log(objeto);
+	if (objeto.length >0) {
+		//console.log(objeto);
+		objeto.forEach(function(elemt, index){
+			var x = elemt.ejex;
+			var y = elemt.ejey;
+			ctx.beginPath();
+			ctx.lineCap="round";
+			ctx.lineWidth=elemt.tamano;
+			ctx.moveTo(x,y);
+			ctx.lineTo(x+1,y+1);
+			ctx.strokeStyle = elemt.color;
+			ctx.stroke();
 
-	objeto.coordenadas.forEach(function(elemt, index){
-		//console.log(i);
-		var x = elemt[0];
-		var y = elemt[1];
-
-		ctx.beginPath();
-		ctx.lineCap="round";
-		ctx.lineWidth=objeto.tamano;
-		ctx.moveTo(x,y);
-		ctx.lineTo(x+1,y+1);
-		ctx.strokeStyle = objeto.color;
-		ctx.stroke();
-
-	});
+		});
+		
+	}
 }
 
 /* VIEW INFO IMAGE FOR DATABASE*/
 socket.on("viewinfo imageDB", function(objIMG){
-	console.log(objIMG);
-	
-	objIMG.forEach( function(image, index){
-		var img = new Image();
-		img.src = "/images/"+ image.nombre
-		img.onload = function(){
-			ctx.drawImage( img, image.coordenadas[0], image.coordenadas[1]);
-		}
-	})
+	if (objIMG[0]) {
+		console.log(objIMG);
+		objIMG.forEach( function(image, index){
+			var img = new Image();
+			img.src = "/images/"+ image.nombre
+			img.onload = function(){
+				ctx.drawImage( img, image.coordenadas[0], image.coordenadas[1]);
+			}
+		})
+		
+	}
 })
 
 /*
@@ -358,4 +390,21 @@ socket.on("imagen usuarios", function(imagen){
 	
 })
 
+
+function elige_ubicacion(x, y){
+	lienzo_real.ejex = x
+	lienzo_real.ejey = y
+	socket.emit("eligo ubicacion", {
+		ejex : x,
+		ejey : y,
+		width : pantalla.getwidth(),
+		heigth : pantalla.getheight()
+	})
+}
+
+socket.on("recibe nuevaUbicacion", function(datos){
+	console.log(datos);
+	
+	dibujaCompanero(datos)
+})
 

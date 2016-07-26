@@ -4,7 +4,8 @@ var Schema = mongoose.Schema;
 var pinceladas = new Schema({
 	color : String,
 	tamano : Number,
-	coordenadas : []
+	ejex : Number,
+	ejey : Number
 
 })
 
