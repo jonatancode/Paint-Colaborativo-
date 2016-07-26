@@ -14,7 +14,11 @@ var lienzo_real = {
 	//ejex
 	//ejey
 }
-
+var mando_lienzo = null;
+var up = null;
+var rigth = null;
+var down = null;
+var left = null;
 window.addEventListener('load', function(){
 	canvas = document.getElementById("canvas");
 	canvas.setAttribute('width', pantalla.getwidth() );
@@ -55,11 +59,14 @@ window.addEventListener('load', function(){
 	socket.on("datos lienzo", function(dato){
 		console.log(dato.ejes);
 		if (!dato.vacio ) {
-			dibujaCompanero(dato.resultado)
+			dibujaCompanero(dato.resultado, "nuevo")
 		}
 		lienzo_real.ejex = dato.ejes[0]
 		lienzo_real.ejey = dato.ejes[1]
 	});
+	/* MANDO LIENZO */
+	mando_lienzo = document.getElementById("mando");
+	mando_lienzo.addEventListener('click', cambia_direccion, false);
 
 }, false)
 
@@ -320,14 +327,34 @@ socket.on("linea_Companero", function(data){
 	 var width = pantalla.getwidth();
 	 var heigh = pantalla.getheight();
 	if ( (data.ejex > lienzo_real.ejex && data.ejex < lienzo_real.ejex +  width) && ( data.ejey > lienzo_real.ejey && data.ejey < lienzo_real.ejey +  heigh)) {
-		console.log(lienzo_real);
+		//console.log(lienzo_real);
 		console.log(data);
-		dibujaCompanero(data);
+		dibujaCompanero(data, "anadir");
 	}
 });
 
-function dibujaCompanero(objeto){
-	if (objeto.length >0) {
+function dibujaCompanero(objeto, nuevo){
+	//console.log(objeto.length)
+	if (nuevo == "anadir") {
+		console.log("Esot anadiento");
+		console.log("ancho: " + pantalla.getwidth());
+		var x =  objeto.ejex - lienzo_real.ejex;
+		var y =  objeto.ejey- lienzo_real.ejey ;
+		console.log(x +"\n"+y);
+		ctx.beginPath();
+		ctx.lineCap="round";
+		ctx.lineWidth=objeto.tamano;
+		ctx.moveTo(x,y);
+		ctx.lineTo(x+1,y+1);
+		ctx.strokeStyle = objeto.color;
+		ctx.stroke();
+
+	}
+	if (nuevo == "nuevo") {
+		ctx.clearRect(0, 0, pantalla.getwidth(), pantalla.getheight());
+	}
+
+	if (objeto.length > 0) {
 		//console.log(objeto);
 		objeto.forEach(function(elemt, index){
 			var x = elemt.ejex;
@@ -343,6 +370,10 @@ function dibujaCompanero(objeto){
 		});
 		
 	}
+	else {
+
+	}
+
 }
 
 /* VIEW INFO IMAGE FOR DATABASE*/
@@ -390,10 +421,33 @@ socket.on("imagen usuarios", function(imagen){
 	
 })
 
+function cambia_direccion(e){
+	//console.log(e.target.getAttribute("value"));
+	var value = e.target.getAttribute("value"); 
+	if (value != "") {
+		if (value == "up") {
+			lienzo_real.ejey--;
+			//console.log(lienzo_real.ejey)
+			console.log(lienzo_real.ejey)
+		}
+		else if (value == "rigth") {
+			lienzo_real.ejex++;
+		}
+		else if ( value == "down"){
+			lienzo_real.ejey++;
+		}
+		else if ( value ==  "left"){
+			lienzo_real.ejex--;
+		}
+		elige_ubicacion(lienzo_real.ejex, lienzo_real.ejey)
+	}
+
+}
+
 
 function elige_ubicacion(x, y){
-	lienzo_real.ejex = x
-	lienzo_real.ejey = y
+	lienzo_real.ejex = x;
+	lienzo_real.ejey = y;
 	socket.emit("eligo ubicacion", {
 		ejex : x,
 		ejey : y,
@@ -404,7 +458,7 @@ function elige_ubicacion(x, y){
 
 socket.on("recibe nuevaUbicacion", function(datos){
 	console.log(datos);
-	
-	dibujaCompanero(datos)
+	var nuevo = "nuevo";
+	dibujaCompanero(datos, nuevo);
 })
 

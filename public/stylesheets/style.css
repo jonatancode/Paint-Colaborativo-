@@ -90,3 +90,22 @@ input:after{
 	height: 100%;
 	margin: 0;
 	padding: 0;
+}
+
+
+#mando div{
+	width: 50px;
+	display: inline-block;
+	border: 1px solid red;
+	text-align: center;
+
+}
+#mando div p{
+	margin: 0;
+	padding: 10% 15%;
+	width: 70%;
+	height: 80%;
+	/*background: white;*/
+	display: inline-block;
+
+}
