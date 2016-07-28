@@ -31,7 +31,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', routes);
-app.use('/socket.io/socket.io.js',   express.static(__dirname + '/node_modules/socket.io-client/socket.io.js'));
+app.use('/socket.io/socket.io.js',   express.static(__dirname + '/node_modules/socket.io-client/dist/socket.io.js'));
 app.use('/jquery',   express.static(__dirname + '/node_modules/jquery/dist/jquery.min.js'));
 //app.use('/images',   express.static(__dirname + '/imagenes/'));
 
