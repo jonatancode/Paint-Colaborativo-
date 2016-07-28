@@ -1,9 +1,9 @@
 {
   "name": "PaintOnline",
-  "version": "0.0.0",
-  "private": true,
+  "version": "0.0.1",
+  "main": "app.js",
   "scripts": {
-    "start": "hotnode app.js"
+    "start": "node app.js"
   },
   "dependencies": {
     "body-parser": "~1.15.1",

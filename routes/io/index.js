@@ -8,8 +8,8 @@ module.exports = function(app){
 
 	var server = require('http').createServer(app);
 	var io = require('socket.io').listen(server);
-	var port = Number(process.env.PORT || 3000);
-	server.listen(port);
+	//var port = Number(process.env.PORT || 3000);
+	server.listen(8080);
 	
 	io.on('connection', function(socket){
 		console.log("Hay alguien conectado");
@@ -132,12 +132,13 @@ module.exports = function(app){
 		/*	ENVIA IMAGENES DE LA BASE DE DATOS*/
 		socket.on("getinfo image", function(){
 			/* BUSCA EN LA BASE DE DATOS*/
-			Imagenes.find({}, function(err, data){
+			//Imagenes.find({}, function(err, data){
 				//console.log(data[0].imagen);
 				//var imagen = new Buffer(data[0].imagen).toString("base64");
 				//data[0].imagen = imagen;
-				socket.emit("viewinfo imageDB", data)
-			})
+				//socket.emit("viewinfo imageDB", data)
+				socket.emit("viewinfo imageDB", {})
+			//})
 		})
 
 		// recibe datos del cliente y los envia los compalñeros
@@ -169,7 +170,7 @@ module.exports = function(app){
 					console.log(err);
 				}
 			})
-
+			
 			/* envia a todos los usuer menos al que activa el evento*/
 			socket.broadcast.emit("linea_Companero", data);
 		})

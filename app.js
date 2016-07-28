@@ -8,7 +8,10 @@ var bodyParser = require('body-parser');
 var routes = require('./routes/index');
 var mongoose = require('mongoose');
 
-mongoose.connect('mongodb://localhost/pinceladas');
+//mongoose.connect('mongodb://localhost/pinceladas');
+mongoose.Promise = global.Promise;
+
+mongoose.connect("mongodb://ucmjyz7azolvkxk:gAqIh8CH8vldElz5JNmn@bgmltwkobgfjgr1-mongodb.services.clever-cloud.com:27017/bgmltwkobgfjgr1");
 
 var app = express();
 require('./routes/io/index')(app);

@@ -9,6 +9,7 @@ var pinceladas = new Schema({
 
 })
 
-var obj = mongoose.model('pincelada', pinceladas);
+var obj = mongoose.model('bgmltwkobgfjgr1', pinceladas);
+//var obj = mongoose.model('pincelada', pinceladas);
 
 module.exports = obj;

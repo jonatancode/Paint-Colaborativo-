@@ -1,4 +1,4 @@
-var mongoose = require("mongoose");
+/*var mongoose = require("mongoose");
 var Schema = mongoose.Schema;
 
 var tamano = new Schema({
@@ -6,6 +6,7 @@ var tamano = new Schema({
 	heigth : Number
 })
 
-var detalles = mongoose.model('tamano', tamano);
+var detalles = mongoose.model('bgmltwkobgfjgr1', tamano);
+//var detalles = mongoose.model('tamano', tamano);
 
-module.exports = detalles;
+module.exports = detalles;*/
